@@ -1,4 +1,4 @@
-package utils
+package murmur3
 
 func Hash64WithSeed(data []byte, seed int) int64 {
 	length := uint64(len(data))

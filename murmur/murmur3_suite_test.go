@@ -1,4 +1,4 @@
-package murmur_test
+package murmur3_test
 
 import (
 	. "github.com/onsi/ginkgo"
@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestMurmur(t *testing.T) {
+func TestMurmur3(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Murmur Suite")
+	RunSpecs(t, "Murmur3 Suite")
 }

@@ -1,4 +1,4 @@
-package utils_test
+package murmur3_test
 
 import (
 	"cs/utils"
@@ -47,8 +47,8 @@ var data = []struct {
 
 var _ = Describe("Murmer", func() {
 
-	Context("When I use existing aid and upid combos", func() {
-		It("the go code should generate the same murmer hash", func() {
+	Context("When I use existing murmurhash3 data", func() {
+		It("the go code should generate the same murmer hash as the Java", func() {
 			for _, elem := range data {
 				mHash64 := utils.Hash64(fmt.Sprintf("%s%d", elem.aid, elem.upid))
 				Expect(mHash64).To(Equal(elem.expected))
