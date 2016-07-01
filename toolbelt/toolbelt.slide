@@ -1,0 +1,237 @@
+Go Tool Belt
+Everyday tools used at Crowdstrike
+30 Jun 2016
+Tags: go golang 
+
+Sean Berry
+Principal Engineer, Crowdstrike
+sean@crowdstrike.com
+http://crowdstrike.com/
+@schleprachaun
+
+* The Go Tool Belt
+
+.image ./toolbelt.png
+
+* Tools we will cover
+
+- Circuit Breakers
+- Retriers
+- Deadlines
+- Caches
+- context.Context
+- Rate Limiting
+
+* Circuit Breaker
+
+* Circuit Breaker
+
+.link http://github.com/sony/gobreaker
+
+.image ./breaker.png
+
+* Circuit Breaker
+
+- Circuit starts in a closed state
+- When the error threshold is reached the circuit opens
+- After a configurable amount of time the circuit goes half-open
+- A request is made in the half-open state
+- If the request succeeds the cicuit closes
+- If it fails we reset our timer and go back to open
+
+* Circuit Breaker Setup
+
+.code circuitbreaker/main.go /START SETUP/,/END SETUP/
+
+* Circuit Breaker Running
+
+.play circuitbreaker/main.go /START CODE/,/END CODE/
+
+* Circuit Breaker Use Cases
+
+- You need to keep throughput high
+- External service may be unreliable
+- You have an alternative method during open circuit
+- Avoid putting more pressure on a struggling system
+- Avoid waiting for network timeouts
+
+* Retriers
+
+* Retriers
+
+.link https://github.com/eapache/go-resiliency
+
+.image ./retrier.png
+
+* Retriers
+
+- Determine a backoff strategy for failure
+- Determine a max number of times we will try
+- Determine *whitelist* errors
+
+Some examples of errors you may want to whitelist:
+
+- Decoding / Unmarshalling erros when the source won't change
+- Permission Violations
+- Rate limiting error
+
+* Retriers Setup
+
+.code retriers/main.go /START SETUP/,/END SETUP/
+
+Options for backoff strategy:
+
+- ConstantBackoff will do retries at N, 2N, 3N, 4N, ... XN times
+- ExponentialBackoff will do retries at N, 2N. 4N, 8N, ... 2^(X-1)N times
+
+* Retriers Running
+
+- Hard Failures - failed twice in a row
+- Failures - failed first call
+- Success - succeeded within two calls
+
+.play retriers/main.go /START CODE/,/END CODE/
+
+* Retriers Use Cases
+
+- Downstream service may fail
+- Downstream service implements rate limiting
+- Success of request is paramount
+- Still good to have alternative on failure
+
+* Deadlines
+
+* Deadlines
+
+.link https://github.com/eapache/go-resiliency
+
+.image ./deadline.png
+
+
+* Deadline
+
+- Function call is required to compelete before timeout
+- If response comes before timeout, all good
+- Otherwise a deadline.ErrTimedOut is received
+- Can use closures
+
+* Deadline Setup
+
+.code deadline/main.go /START SETUP/,/END SETUP/
+
+* Deadline Running
+
+.play deadline/main.go 31,52
+
+* Deadline Use Cases
+
+- SLA
+- Complete processing time needs to be shorter than X ms
+- Individual request times need to be shorter than Y ms
+
+
+* Caches
+.link https://github.com/hashicorp/golang-lru
+.link http://github.com/patrickmn/go-cache
+
+* Caches
+
+.image cache.png
+
+* Caches - LRU
+
+.image dlinklist.png
+
+* Caches - LRU
+
+.image dlinklist_hashmap.png
+
+* Caches - LRU
+
+- Standard LRU
+- ARC Cache
+- Q2 Cache
+
+* Caches - LRU
+
+.play lru/main.go /func main/,/^}/
+
+* context.Context
+
+* context.Context
+
+.link https://github.com/golang/net/tree/master/context
+
+* context.Context
+
+Create a context at the start of a request and propogate througout the request's lifetime
+
+  func WithValue(parent Context, key interface{}, val interface{}) Context {
+    return &valueCtx{parent, key, val}
+  }
+
+Start with the base Context, context.Background()
+
+
+  func (c *valueCtx) Value(key interface{}) interface{} {
+    if c.key == key {
+      return c.val
+    }
+    return c.Context.Value(key)
+  }
+
+* context.Context
+
+.image dc.png
+
+* context.Context
+
+.play ctx/main.go /func main/,/^}/
+
+* context.Context
+
+.play ctxrace/main.go /func main/,/^}/
+
+* Rate Limiting
+
+.link https://github.com/CrowdStrike/ratelimiter
+
+* Rate Limiting Setup
+
+.code ratelimit/main.go /maxCap/,/^\t}/
+
+* Rate Limiting Running
+
+.play ratelimit/main.go /func main/,/^}/
+
+* Rate Limiting Use Cases
+
+- API Access
+- Downstream service DOS protection
+- Resource protection
+
+* Rate Limiting - Really just an LRU
+
+Our rate limiter is based entirely off of the Hashicorp LRU library
+
+- Each unique identifier for rate-limiting is a cache item
+- The value of the cached item contains a counter and time
+- Inspect the counter and check vs the max number within a time period
+
+- Note: need to have > max users of cache or you are still open to DOS
+
+* Honorable Mentions
+
+.link https://github.com/facebookgo/rpool Facebook RPool
+
+.link https://github.com/onsi/ginkgo Ginkgo
+
+.link https://github.com/onsi/gomega Gomega
+
+.link https://github.com/emicklei/go-restful Go-Restful
+
+.link https://github.com/Shopify/sarama Sarama
+
+.link https://github.com/facebookgo/httpcontrol HttpControl
+
+.link https://github.com/pkg/errors Errors
